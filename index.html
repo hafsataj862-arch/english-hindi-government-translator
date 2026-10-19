@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English–Hindi Government Text Translator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1c2430;
+    --paper: #f7f5ef;
+    --panel: #ffffff;
+    --rule: #d8d3c4;
+    --saffron: #c96a1f;
+    --deep-green: #1f5c47;
+    --muted: #6b6558;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+  }
+
+  .band {
+    height: 6px;
+    background: linear-gradient(90deg, var(--saffron) 0 33%, #ffffff 33% 66%, var(--deep-green) 66% 100%);
+  }
+
+  header {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 48px 24px 28px;
+  }
+
+  h1 {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 700;
+    font-size: 2.1rem;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.98rem;
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px 64px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 700px) {
+    .split { grid-template-columns: 1fr; }
+    .col-en { border-right: none !important; border-bottom: 1px solid var(--rule); }
+  }
+
+  .col {
+    padding: 20px;
+  }
+
+  .col-en {
+    border-right: 1px solid var(--rule);
+  }
+
+  .col-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    resize: vertical;
+    border: none;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ink);
+    background: transparent;
+  }
+
+  .hindi-output {
+    min-height: 220px;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 1.08rem;
+    line-height: 1.9;
+    white-space: pre-wrap;
+    color: var(--ink);
+  }
+
+  .hindi-output.placeholder {
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+  }
+
+  .action-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-top: 1px solid var(--rule);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    background: var(--deep-green);
+    color: #fff;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 3px;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  button:hover { background: #164836; }
+  button:disabled { background: #a9a49a; cursor: not-allowed; }
+
+  .status {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .status.error { color: #a6321c; }
+
+  .terms-detected {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .terms-detected .col-label { margin-bottom: 10px; }
+
+  .term-chip {
+    display: inline-block;
+    font-size: 0.82rem;
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 4px 12px;
+    margin: 0 8px 8px 0;
+    color: var(--deep-green);
+    background: #f1f6f3;
+  }
+
+  footer {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="band"></div>
+
+<header>
+  <h1>English–Hindi Government Text Translator</h1>
+  <p>Paste English text from a government notice, scheme description, or portal page. The translation preserves official terminology &mdash; ministry names, scheme names, and designations &mdash; using a curated glossary alongside IndicTrans2.</p>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="split">
+      <div class="col col-en">
+        <div class="col-label">English input</div>
+        <textarea id="inputText" placeholder="e.g. The Ministry of Rural Development announced that the Pradhan Mantri Awas Yojana has covered over 2.5 crore beneficiaries this year."></textarea>
+      </div>
+      <div class="col">
+        <div class="col-label">Hindi translation</div>
+        <div class="hindi-output placeholder" id="outputText">Translation will appear here.</div>
+      </div>
+    </div>
+    <div class="action-row">
+      <button id="translateBtn" onclick="translateText()">Translate</button>
+      <span class="status" id="statusText"></span>
+    </div>
+    <div class="terms-detected" id="termsSection" style="display:none; padding: 0 20px 20px;">
+      <div class="col-label">Government terms detected &amp; protected</div>
+      <div id="termsList"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Prototype build &middot; IndicTrans2 (AI4Bharat) + custom preprocessing and terminology modules
+</footer>
+
+<script>
+async function translateText() {
+  const input = document.getElementById('inputText').value.trim();
+  const output = document.getElementById('outputText');
+  const status = document.getElementById('statusText');
+  const btn = document.getElementById('translateBtn');
+  const termsSection = document.getElementById('termsSection');
+  const termsList = document.getElementById('termsList');
+
+  if (!input) {
+    status.textContent = 'Enter some English text first.';
+    status.className = 'status error';
+    return;
+  }
+
+  btn.disabled = true;
+  status.textContent = 'Translating… (first request loads the model, this can take a minute)';
+  status.className = 'status';
+  output.textContent = '';
+  output.classList.add('placeholder');
+  termsSection.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: input })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Translation failed');
+    }
+
+    output.textContent = data.hindi_translation;
+    output.classList.remove('placeholder');
+    status.textContent = `Done · ${data.sentence_count} sentence(s)`;
+    status.className = 'status';
+
+    if (data.terms_detected && data.terms_detected.length > 0) {
+      termsList.innerHTML = data.terms_detected
+        .map(t => `<span class="term-chip">${t}</span>`)
+        .join('');
+      termsSection.style.display = 'block';
+    }
+  } catch (err) {
+    status.textContent = 'Error: ' + err.message;
+    status.className = 'status error';
+    output.textContent = 'Translation failed.';
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>
