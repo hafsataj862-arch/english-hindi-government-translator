@@ -1,0 +1,7 @@
+flask
+gunicorn
+torch
+transformers==4.51.3
+sentencepiece
+sacremoses
+IndicTransToolkit
