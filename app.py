@@ -12,35 +12,67 @@ app = Flask(__name__, static_folder=".", static_url_path="")
 
 # IndicTrans2 model setup
 MODEL_NAME = "ai4bharat/indictrans2-en-indic-dist-200M"
+HDM_Token = os.environ.get("HDM_Token")
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 print("Loading IndicTrans2 model...")
 
+# Load tokenizer using the Hugging Face access token
 tokenizer = AutoTokenizer.from_pretrained(
     MODEL_NAME,
+    token=HDM_Token,
     trust_remote_code=True
 )
 
+# Load model using the same access token
 model = AutoModelForSeq2SeqLM.from_pretrained(
     MODEL_NAME,
+    token=HDM_Token,
     trust_remote_code=True
 ).to(DEVICE)
 
 model.eval()
-
 ip = IndicProcessor(inference=True)
 
 print("Model loaded successfully!")
 print("Device:", DEVICE)
 
+# Government terminology glossary
+GOVERNMENT_TERMS = {
+    "direct benefit transfer": "प्रत्यक्ष लाभ अंतरण",
+    "government": "सरकार",
+    "ministry": "मंत्रालय",
+    "citizen": "नागरिक",
+    "scheme": "योजना",
+    "policy": "नीति",
+    "certificate": "प्रमाणपत्र",
+    "application": "आवेदन",
+    "department": "विभाग",
+    "services": "सेवाएँ",
+    "official": "आधिकारिक"
+}
 
-# English-to-Hindi translation
-def translate_to_hindi(sentence):
+
+def detect_government_terms(text):
+    """Identify government-related terms in the English input."""
+    detected = []
+    text_lower = text.lower()
+
+    for term in sorted(GOVERNMENT_TERMS, key=len, reverse=True):
+        pattern = r"(?<!\w)" + re.escape(term) + r"(?!\w)"
+        if re.search(pattern, text_lower):
+            detected.append(term)
+
+    return detected
+
+
+def translate_to_hindi(text):
+    """Translate English text into Hindi using IndicTrans2."""
     src_lang = "eng_Latn"
     tgt_lang = "hin_Deva"
 
     batch = ip.preprocess_batch(
-        [sentence],
+        [text],
         src_lang=src_lang,
         tgt_lang=tgt_lang
     )
@@ -113,23 +145,7 @@ def translate_api():
             if sentence.strip()
         ])
 
-        government_terms = [
-            "government",
-            "ministry",
-            "citizen",
-            "scheme",
-            "policy",
-            "certificate",
-            "application",
-            "department",
-            "services",
-            "official"
-        ]
-
-        terms_detected = [
-            term for term in government_terms
-            if term.lower() in text.lower()
-        ]
+        terms_detected = detect_government_terms(text)
 
         return jsonify({
             "hindi_translation": hindi,
